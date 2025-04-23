@@ -76,48 +76,46 @@ extension CheckoutViewController {
                 // Create a URLSession task to make the request
                 URLSession.shared.dataTask(with: request) { data, response, error in
                     if let error = error {
-                        print("Error: \(error)")
+                        self.handleError(data: "\(error)")
                         return
                     }
                     
                     guard let httpResponse = response as? HTTPURLResponse else {
-                        print("Invalid response")
+                        self.handleError(data: "Invalid response")
                         return
                     }
                     
-                    print("Status code: \(httpResponse.statusCode)")
                     
                     if let data = data {
                         do {
                             if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                                print("Response: \(jsonResponse)")
                                 if let redirectUrlString = jsonResponse["redirect_url"] as? String {
                                     CheckoutViewController.tabCheckoutUrl = self.transformURlFromConfig(redirectUrlString)
                                     self.postLoadingFromCDN()
                                 }
                             }
                         } catch {
-                            print("Error parsing response: \(error)")
                             if let responseString = String(data: data, encoding: .utf8) {
-                                print("Response string: \(responseString)")
+                                self.handleError(data: "Response string: \(responseString)")
+                                return
                             }
+                            self.handleError(data: "Error parsing response: \(error)")
                         }
                     }
                 }.resume()
                 
             } catch {
-                print("Error creating request body: \(error)")
+                self.handleError(data: "Error creating request body: \(error)")
             }
         }
     }
     
     func postLoadingFromCDN() {
         do {
-            print("CheckoutViewController.tabCheckoutUrl: \(CheckoutViewController.tabCheckoutUrl)")
             let url = URL(string: CheckoutViewController.tabCheckoutUrl)!
             try openUrl(url: url)
         } catch {
-            // self.delegate?.onError?(data: "{error:\(error.localizedDescription)}")
+            handleError(data: "{error:\(error.localizedDescription)}")
         }
     }
     
