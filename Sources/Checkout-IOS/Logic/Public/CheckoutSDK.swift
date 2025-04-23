@@ -21,6 +21,11 @@ public class CheckoutSDK {
 }
 
 extension CheckoutSDK: CheckoutSDKResults {
+    
+    func onClose() {
+        print("onClose")
+    }
+    
     func onReady() {
         print("onSuccess")
     }

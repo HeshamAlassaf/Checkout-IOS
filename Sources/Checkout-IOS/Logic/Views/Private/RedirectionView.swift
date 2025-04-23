@@ -27,7 +27,7 @@ class RedirectionView: UIView {
     /// A custom action block to execute when nothing else being loaded for a while
     var redirectionReached:(String)->() = { _ in }
     /// A custom action block to execute when the user cancels the authentication
-    var threeDSCanceled:()->() = {}
+    var redirectionViewClosed:()->() = {}
     /// The powered by tap view
     var poweredByTapView:PoweredByTapView = .init(frame: .zero)
     /// Represents the locale needed to render the powered by tap view with
@@ -58,7 +58,7 @@ class RedirectionView: UIView {
         webViewConstraints()
         poweredByTapViewConstraints()
         poweredByTapView.backButtonClicked = {
-            self.threeDSCanceled()
+            self.redirectionViewClosed()
         }
     }
     

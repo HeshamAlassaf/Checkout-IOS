@@ -339,14 +339,14 @@ extension CheckoutViewController: WKNavigationDelegate {
           case _ where url.absoluteString.contains("onReady"):
               results.onReady()
               break
-          case _ where url.absoluteString.contains("onFocus"):
-//              delegate?.onFocus?()
-              break
           case _ where url.absoluteString.contains("onError"):
               handleError(data: tap_extractDataFromUrl(url.absoluteURL))
               break
           case _ where url.absoluteString.contains("onSuccess"):
               handlePaymentResult(data: tap_extractDataFromUrl(url.absoluteURL))
+              break
+          case _ where url.absoluteString.contains("onClose"):
+              handleClose()
               break
           case _ where url.absoluteString.contains("onRedirectUrl"):
               handleRedirection(data: tap_extractDataFromUrl(url.absoluteURL))
@@ -355,6 +355,13 @@ extension CheckoutViewController: WKNavigationDelegate {
               break
           }
       }
+    
+    internal func handleClose() {
+        self.dismiss(animated: true) { [weak self] in
+            guard let self = self else { return }
+            self.results.onClose()
+        }
+    }
     
     internal func handlePaymentResult(data: String) {
         self.dismiss(animated: true) {  [weak self] in
@@ -389,13 +396,8 @@ extension CheckoutViewController: WKNavigationDelegate {
         // Set the selected card locale for correct semantic rendering
         redirectView.selectedLocale = "en"
         // Set to web view what should it when the process is canceled by the user
-        redirectView.threeDSCanceled = {
-//            // reload the card data
-//            self.openUrl(url: self.currentlyLoadedCardConfigurations)
-//            // inform the merchant
-//            self.delegate?.onError?(data: "Payer canceled three ds process")
-//            // dismiss the threeds page
-//            SwiftEntryKit.dismiss()
+        redirectView.redirectionViewClosed = {
+            SwiftEntryKit.dismiss()
         }
         // Hide or show the powered by tap based on coming parameter
         redirectView.poweredByTapView.isHidden = !(redirectionData.powered ?? true)
