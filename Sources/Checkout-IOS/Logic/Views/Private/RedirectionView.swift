@@ -134,14 +134,10 @@ extension RedirectionView {
 extension RedirectionView: WKNavigationDelegate {
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         // Check if it is the return url
-        
-        print("te  url: \(navigationAction.request.url) \n data: \(tap_extractDataFromUrl(navigationAction.request.url!)) \n \(redirectionData.redirectionUrl?.url)")
-        
         if let requestURL:URL = navigationAction.request.url,
            let triggerKeyword:String = redirectionData.keyword,
            let waitedKeyword:String = triggeringValue(from: requestURL, with: triggerKeyword),
            !waitedKeyword.isEmpty {
-            print("waitedKeyword: \(waitedKeyword) \n")
             self.redirectionReached(waitedKeyword)
             decisionHandler(.cancel)
             return
@@ -149,11 +145,6 @@ extension RedirectionView: WKNavigationDelegate {
         decisionHandler(.allow)
     }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        
-        if let webView = self.webView, let loadedURL = webView.url {
-            print("Currently loaded URL: \(loadedURL.absoluteString)")
-        }
-        
         guard !isLoaded else {
             return
         }
@@ -161,7 +152,6 @@ extension RedirectionView: WKNavigationDelegate {
         isLoaded = true
         
         if let timer = timer {
-            print("timer reinitialized")
             timer.invalidate()
         }
         

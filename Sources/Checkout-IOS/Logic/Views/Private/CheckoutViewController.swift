@@ -138,7 +138,7 @@ extension CheckoutViewController: WKNavigationDelegate {
         case _ where url.absoluteString.contains("onError"):
             handleError(data: tap_extractDataFromUrl(url.absoluteURL))
         case _ where url.absoluteString.contains("onSuccess"):
-            handlePaymentResult(data: tap_extractDataFromUrl(url.absoluteURL))
+            handleSuccess(data: tap_extractDataFromUrl(url.absoluteURL))
         case _ where url.absoluteString.contains("onClose"):
             handleClose()
         case _ where url.absoluteString.contains("onRedirectUrl"):
@@ -158,7 +158,7 @@ extension CheckoutViewController {
         }
     }
     
-    func handlePaymentResult(data: String) {
+    func handleSuccess(data: String) {
         self.dismiss(animated: true) { [weak self] in
             guard let self = self else { return }
             self.results.onSuccess(data: data)
@@ -179,7 +179,7 @@ extension CheckoutViewController {
               let _: String = redirectionData.url,
               let _: String = redirectionData.redirectionUrl?.url else {
             // This means, there is such an error from the integration with web sdk
-            // delegate?.onError?(data: "Failed to start redirect process")
+            handleError(data: "Failed to start redirect process")
             return
         }
         
@@ -192,14 +192,16 @@ extension CheckoutViewController {
         // Set to web view what should it when the process is canceled by the user
         redirectView.redirectionViewClosed = {
             SwiftEntryKit.dismiss()
+            self.handleError(data: "user canceled")
         }
         // Hide or show the powered by tap based on coming parameter
         redirectView.poweredByTapView.isHidden = !(redirectionData.powered ?? true)
         // Set to web view what should it when the process is completed by the user
-        redirectView.redirectionReached = { redirectionUrl in
+        redirectView.redirectionReached = { chargeId in
             SwiftEntryKit.dismiss {
-                DispatchQueue.main.async {
-                    self.passRedirectionDataToSDK(rediectionUrl: redirectionUrl)
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.handleSuccess(data: chargeId)
                 }
             }
         }
@@ -211,11 +213,6 @@ extension CheckoutViewController {
         }
         // Tell it to start rendering 3ds content in background
         redirectView.startLoading()
-    }
-    
-    func passRedirectionDataToSDK(rediectionUrl: String) {
-        print("rediectionUrl: \(rediectionUrl)")
-        webView?.evaluateJavaScript("window.retrieve('\(rediectionUrl)')")
     }
 }
 
