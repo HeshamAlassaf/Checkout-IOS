@@ -116,7 +116,7 @@ class ViewController: UIViewController {
             ],
             "isApplePayAvailableOnClient": true,
         ]
-        let checkoutSDK = CheckoutSDK(configurations: configurations, delegate: self)
+        CheckoutSDK().start(configurations: configurations, delegate: self)
 
     }
 }

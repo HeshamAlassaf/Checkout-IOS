@@ -346,7 +346,7 @@ extension CheckoutViewController: WKNavigationDelegate {
               handleError(data: tap_extractDataFromUrl(url.absoluteURL))
               break
           case _ where url.absoluteString.contains("onSuccess"):
-//              delegate?.onSuccess?(data: tap_extractDataFromUrl(url.absoluteURL))
+              handlePaymentResult(data: tap_extractDataFromUrl(url.absoluteURL))
               break
           case _ where url.absoluteString.contains("onRedirectUrl"):
               handleRedirection(data: tap_extractDataFromUrl(url.absoluteURL))
@@ -356,9 +356,19 @@ extension CheckoutViewController: WKNavigationDelegate {
           }
       }
     
+    internal func handlePaymentResult(data: String) {
+        self.dismiss(animated: true) {  [weak self] in
+            guard let self = self else { return }
+            self.results.onSuccess(data: data)
+        }
+    }
+    
     
     internal func handleError(data:String) {
-        print(data)
+        self.dismiss(animated: true) { [weak self] in
+            guard let self = self else { return }
+            self.results.onError(data: data)
+        }
     }
     
     internal func handleRedirection(data: String) {

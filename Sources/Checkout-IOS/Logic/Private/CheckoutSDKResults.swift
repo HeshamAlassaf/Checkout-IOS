@@ -8,5 +8,7 @@
 
 internal protocol CheckoutSDKResults: AnyObject {
     func onReady()
+    func onSuccess(data: String)
+    func onError(data: String)
 }
     
