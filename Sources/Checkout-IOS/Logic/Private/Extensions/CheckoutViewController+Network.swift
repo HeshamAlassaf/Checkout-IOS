@@ -67,12 +67,12 @@ extension CheckoutViewController {
         if let url = URL(string: "\(CheckoutViewController.tabCheckoutConfigUrl)checkout/config") {
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
-            var updatedConfigurations = self.configurations
+            var updatedConfigurations = self.configurations.updatingAllOccurrences(ofKey: "cardNFC", with: false)
             updatedConfigurations["headers"] = generateApplicationHeader()
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             
             do {
-                request.httpBody = try JSONSerialization.data(withJSONObject: configDict, options: [])
+                request.httpBody = try JSONSerialization.data(withJSONObject: updatedConfigurations, options: [])
                 // Create a URLSession task to make the request
                 URLSession.shared.dataTask(with: request) { data, response, error in
                     if let error = error {
@@ -156,4 +156,5 @@ extension CheckoutViewController {
         
         return transformedUrl
     }
+    
 }

@@ -11,6 +11,7 @@ import SharedDataModels_iOS
 import CoreTelephony
 import SwiftEntryKit
 import WebKit
+import AVFoundation
 
 class CheckoutViewController: UIViewController {
     
@@ -143,6 +144,9 @@ extension CheckoutViewController: WKNavigationDelegate {
             handleClose()
         case _ where url.absoluteString.contains("onRedirectUrl"):
             handleRedirection(data: tap_extractDataFromUrl(url.absoluteURL))
+        case _ where url.absoluteString.contains("onScannerClick"):
+            handleScanCard()
+            break
         default:
             break
         }
@@ -151,26 +155,39 @@ extension CheckoutViewController: WKNavigationDelegate {
 
 // MARK: - Callback Handlers
 extension CheckoutViewController {
+    
+    func closeViewController(callback: @escaping (() -> Void)) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.dismiss(animated: true) { [weak self] in
+                guard let self = self else { return }
+                callback()
+            }
+        }
+    }
+    
     func handleClose() {
-        self.dismiss(animated: true) { [weak self] in
+        self.closeViewController { [weak self] in
             guard let self = self else { return }
             self.results.onClose()
         }
     }
     
     func handleSuccess(data: String) {
-        self.dismiss(animated: true) { [weak self] in
+        self.closeViewController{ [weak self] in
             guard let self = self else { return }
             self.results.onSuccess(data: data)
         }
     }
     
     func handleError(data: String) {
-        self.dismiss(animated: true) { [weak self] in
+        self.closeViewController{ [weak self] in
             guard let self = self else { return }
             self.results.onError(data: data)
         }
     }
+    
+    
     
     func handleRedirection(data: String) {
         print(data)
@@ -214,5 +231,37 @@ extension CheckoutViewController {
         // Tell it to start rendering 3ds content in background
         redirectView.startLoading()
     }
+    
+    /// Starts the scanning process if all requirements are met
+    internal func handleScanCard() {
+        let scannerController:TapScannerViewController = .init()
+        scannerController.delegate = self
+        //scannerController.modalPresentationStyle = .overCurrentContext
+        // Second grant the authorization to use the camera
+        AVCaptureDevice.requestAccess(for: AVMediaType.video) { response in
+            if response {
+                //access granted
+                DispatchQueue.main.async {
+                    self.present(scannerController, animated: true)
+                }
+            }else {
+                self.handleError(data: "{\"error\":\"The user didn't approve accessing the camera.\"}")
+            }
+        }
+    }
 }
+
+extension CheckoutViewController: TapScannerViewControllerDelegate {
+    func cardScanned(with card: TapCard, and scanner: TapScannerViewController) {
+        scanner.dismiss(animated: true) {
+            self.handleScanner(with: card)
+        }
+    }
+    
+    internal func handleScanner(with scannedCard:TapCard) {
+        webView?.evaluateJavaScript("window.fillCardInputs({cardNumber: '\(scannedCard.tapCardNumber ?? "")',expiryDate: '\(scannedCard.tapCardExpiryMonth ?? "")/\(scannedCard.tapCardExpiryYear ?? "")',cvv: '\(scannedCard.tapCardCVV ?? "")',cardHolderName: '\(scannedCard.tapCardName ?? "")'})")
+    }
+    
+}
+
 
