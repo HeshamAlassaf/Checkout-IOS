@@ -10,8 +10,14 @@ import UIKit
 
 public class CheckoutSDK {
     public init(configurations: [String : Any], delegate: CheckoutSDKDelegate) {
-        let checkoutViewController = CheckoutViewController(configurations: configurations)
+        let checkoutViewController = CheckoutViewController(configurations: configurations, results: self)
         delegate.controller.present(checkoutViewController, animated: true)
+    }
+}
+
+extension CheckoutSDK: CheckoutSDKResults {
+    func onReady() {
+        
     }
 }
 

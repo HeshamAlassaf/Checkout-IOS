@@ -15,8 +15,10 @@ import SwiftEntryKit
 class CheckoutViewController: UIViewController {
     
     internal let configurations: [String: Any]
+    internal let results: CheckoutSDKResults
     internal var webView: WKWebView?
     internal var detectedIP:String = ""
+    
     
     // Add top and bottom safe area cover views
     private let topSafeAreaCoverView = UIView()
@@ -43,7 +45,7 @@ SZhWp4Mnd6wjVgXAsQIDAQAB
 -----END PUBLIC KEY-----
 """
     internal var tabCheckoutConfig :String = "https://checkout.dev.tap.company/"
-    
+   
     private var isSandbox:Bool  {
         let gatewayConfig = configurations["gateway"] as? [String:Any]
         let key = gatewayConfig?["publicKey"] as? String ?? ""
@@ -62,8 +64,9 @@ SZhWp4Mnd6wjVgXAsQIDAQAB
         }
     }
     
-    init(configurations: [String: Any]) {
+    init(configurations: [String: Any], results: CheckoutSDKResults) {
         self.configurations = configurations
+        self.results = results
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .overFullScreen
         view.backgroundColor = UIColor.clear
@@ -314,8 +317,6 @@ extension CheckoutViewController: WKNavigationDelegate {
 
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         print("navigationAction: \(webView.url?.absoluteString ?? "unknown")")
-        handleOnLoaded()
-        // You can add additional logic here to handle the successful load
     }
 
     public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -336,16 +337,10 @@ extension CheckoutViewController: WKNavigationDelegate {
           
           switch url.absoluteString {
           case _ where url.absoluteString.contains("onReady"):
-              self.handleOnReady()
+              results.onReady()
               break
           case _ where url.absoluteString.contains("onFocus"):
 //              delegate?.onFocus?()
-              break
-          case _ where url.absoluteString.contains("onBinIdentification"):
-//              delegate?.onBinIdentification?(data: tap_extractDataFromUrl(url.absoluteURL))
-              break
-          case _ where url.absoluteString.contains("onInvalidInput"):
-//              delegate?.onInvalidInput?(invalid: Bool(tap_extractDataFromUrl(url.absoluteURL).lowercased()) ?? false)
               break
           case _ where url.absoluteString.contains("onError"):
               handleError(data: tap_extractDataFromUrl(url.absoluteURL))
@@ -362,16 +357,6 @@ extension CheckoutViewController: WKNavigationDelegate {
       }
     
     
-    func handleOnLoaded() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) {
-            self.topSafeAreaCoverView.isHidden = false
-            self.bottomSafeAreaCoverView.isHidden = false
-        }
-    }
-    
-    func handleOnReady() {
-       
-    }
     internal func handleError(data:String) {
         print(data)
     }
