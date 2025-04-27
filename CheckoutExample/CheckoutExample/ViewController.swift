@@ -31,15 +31,17 @@ class ViewController: UIViewController, CheckoutSettingsViewControllerDelegate {
     }()
     
     var configurations:[String:Any] = [
-        "open": true,
         "hashString": "",
-        "checkoutMode": "page",
         "language": "en",
         "themeMode": "light",
         "supportedPaymentMethods": "ALL",
         "paymentType": "ALL",
         "selectedCurrency": "KWD",
         "supportedCurrencies": "ALL",
+        "supportedPaymentTypes": [],
+        "supportedRegions": [],
+        "supportedSchemes": [],
+        "supportedCountries": [],
         "gateway": [
             "publicKey": "pk_test_ohzQrUWRnTkCLD1cqMeudyjX",
             "merchantId": ""

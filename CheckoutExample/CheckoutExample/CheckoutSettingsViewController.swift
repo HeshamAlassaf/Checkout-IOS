@@ -22,27 +22,12 @@ class CheckoutSettingsViewController: FormViewController {
         
         // Basic settings section
         form +++ Section("Basic Settings")
-        <<< SwitchRow("open"){ row in
-            row.title = "Open"
-            row.value = self.config?["open"] as? Bool ?? true
-            row.onChange { row in
-                self.config?["open"] = row.value ?? true
-            }
-        }
         <<< TextRow("hashString"){ row in
             row.title = "Hash String"
             row.placeholder = "Enter hash string"
             row.value = self.config?["hashString"] as? String ?? ""
             row.onChange { row in
                 self.config?["hashString"] = row.value ?? ""
-            }
-        }
-        <<< SegmentedRow<String>("checkoutMode"){ row in
-            row.title = "Checkout Mode"
-            row.options = ["page", "popup"]
-            row.value = self.config?["checkoutMode"] as? String ?? "page"
-            row.onChange { row in
-                self.config?["checkoutMode"] = row.value ?? "page"
             }
         }
         <<< SegmentedRow<String>("language"){ row in
@@ -92,7 +77,7 @@ class CheckoutSettingsViewController: FormViewController {
         
         <<< MultipleSelectorRow<String>("specificPaymentMethods") { row in
             row.title = "Select Payment Methods"
-            row.options = CheckoutSettingsViewController.supportedPaymentMethods
+            row.options = CheckoutSettingsViewController.supportedPaymentMethodTypes
             // Set initial selections based on current config
             let currentValue = self.config?["supportedPaymentMethods"] as? String
             if currentValue != "ALL" {
@@ -119,6 +104,7 @@ class CheckoutSettingsViewController: FormViewController {
                 }
             }
         }
+        
         <<< ActionSheetRow<String>("paymentType"){ row in
             row.title = "Payment Type"
             row.options = ["ALL", "WEB", "CARD", "DEVICE"]
@@ -129,30 +115,172 @@ class CheckoutSettingsViewController: FormViewController {
         }
         <<< ActionSheetRow<String>("selectedCurrency"){ row in
             row.title = "Selected Currency"
-            
-            // Get supported currencies from config
-            let supportedCurrenciesString = self.config?["supportedCurrencies"] as? String ?? "ALL"
-            var currencyOptions: [String] = ["KWD", "USD", "SAR", "BHD", "QAR", "AED", "OMR", "JOD", "EGP"]
-            
-            // If supportedCurrencies is not "ALL", use the specified currencies
-            if supportedCurrenciesString != "ALL" {
-                currencyOptions = supportedCurrenciesString.components(separatedBy: ",")
-            }
-            
-            row.options = currencyOptions
+            row.options = CheckoutSettingsViewController.supportedCurrencies
             row.value = self.config?["selectedCurrency"] as? String ?? "KWD"
             row.onChange { row in
                 self.config?["selectedCurrency"] = row.value ?? "KWD"
             }
         }
-        <<< TextRow("supportedCurrencies"){ row in
-            row.title = "Supported Currencies"
-            row.placeholder = "ALL or comma-separated list"
-            row.value = self.config?["supportedCurrencies"] as? String ?? "ALL"
+        <<< SwitchRow("useAllCurrencies") { row in
+            row.title = "Use All Currencies"
+            row.value = (self.config?["supportedCurrencies"] as? String ?? "") == "ALL"
             row.onChange { row in
-                self.config?["supportedCurrencies"] = row.value ?? "ALL"
+                if let isAll = row.value, isAll {
+                    self.config?["supportedCurrencies"] = "ALL"
+                    // Hide the multiple selector when "ALL" is selected
+                    let multiSelectorRow: MultipleSelectorRow<String> = self.form.rowBy(tag: "specificCurrencies")!
+                    multiSelectorRow.hidden = true
+                    multiSelectorRow.evaluateHidden()
+                } else {
+                    // Show the multiple selector when specific currencies should be selected
+                    let multiSelectorRow: MultipleSelectorRow<String> = self.form.rowBy(tag: "specificCurrencies")!
+                    multiSelectorRow.hidden = false
+                    multiSelectorRow.evaluateHidden()
+                    
+                    // If switching from ALL to specific, update the config with the current selections
+                    if let selectedValues = multiSelectorRow.value, !selectedValues.isEmpty {
+                        self.config?["supportedCurrencies"] = selectedValues.joined(separator: ",")
+                    } else {
+                        // Default to KWD if nothing selected
+                        self.config?["supportedCurrencies"] = "KWD"
+                        multiSelectorRow.value = ["KWD"]
+                        multiSelectorRow.updateCell()
+                    }
+                }
             }
         }
+        
+        <<< MultipleSelectorRow<String>("specificCurrencies") { row in
+            row.title = "Select Currencies"
+            row.options = CheckoutSettingsViewController.supportedCurrencies
+            
+            // Set initial selections based on current config
+            let currentValue = self.config?["supportedCurrencies"] as? String
+            if currentValue != "ALL" {
+                let values = currentValue?.components(separatedBy: ",") ?? []
+                row.value = Set(values)
+            }
+            
+            // Hide this row if "ALL" is selected
+            row.hidden = Condition.function(["useAllCurrencies"], { form in
+                return (form.rowBy(tag: "useAllCurrencies") as? SwitchRow)?.value == true
+            })
+            
+            row.onChange { row in
+                if let selectedValues = row.value, !selectedValues.isEmpty {
+                    self.config?["supportedCurrencies"] = Array(selectedValues).joined(separator: ",")
+                } else {
+                    // If nothing selected, switch back to ALL
+                    self.config?["supportedCurrencies"] = "ALL"
+                    let allSwitch: SwitchRow = self.form.rowBy(tag: "useAllCurrencies")!
+                    allSwitch.value = true
+                    allSwitch.updateCell()
+                    row.hidden = true
+                    row.evaluateHidden()
+                }
+            }
+        }
+        
+        // Supported Regions Section
+        form +++ Section("Supported Regions")
+        <<< MultipleSelectorRow<String>("supportedRegions") { row in
+            row.title = "Regions"
+            row.options = [
+                "LOCAL",
+                "REGIONAL",
+                "GLOBAL"
+            ]
+            
+            // Set initial selections based on current config
+            if let currentValues = self.config?["supportedRegions"] as? [String] {
+                row.value = Set(currentValues)
+            }
+            
+            row.onChange { row in
+                if let selectedValues = row.value, !selectedValues.isEmpty {
+                    self.config?["supportedRegions"] = Array(selectedValues)
+                } else {
+                    self.config?["supportedRegions"] = []
+                }
+            }
+        }
+        
+        // Supported Schemes Section
+        form +++ Section("Supported Schemes")
+        <<< MultipleSelectorRow<String>("supportedSchemes") { row in
+            row.title = "Card Schemes"
+            row.options = [
+                "VISA",
+                "BENEFIT",
+                "AMEX",
+                "MASTERCARD",
+                "MADA",
+                "MEEZA",
+                "OMANNET"
+            ]
+            
+            // Set initial selections based on current config
+            if let currentValues = self.config?["supportedSchemes"] as? [String] {
+                row.value = Set(currentValues)
+            }
+            
+            row.onChange { row in
+                if let selectedValues = row.value, !selectedValues.isEmpty {
+                    self.config?["supportedSchemes"] = Array(selectedValues)
+                } else {
+                    self.config?["supportedSchemes"] = []
+                }
+            }
+        }
+        
+        // Supported Payment Types Section
+        form +++ Section("Supported Payment Types")
+        <<< MultipleSelectorRow<String>("supportedPaymentTypes") { row in
+            row.title = "Payment Types"
+            row.options = [
+                "CARD",
+                "DEVICE_WALLET",
+                "EXPRESS_CHECKOUT_WALLET",
+                "PASS_THRU_WALLET",
+                "STORED_VALUE_WALLET",
+                "CASH_WALLET",
+                "BNPL"
+            ]
+            
+            // Set initial selections based on current config
+            if let currentValues = self.config?["supportedPaymentTypes"] as? [String] {
+                row.value = Set(currentValues)
+            }
+            
+            row.onChange { row in
+                if let selectedValues = row.value, !selectedValues.isEmpty {
+                    self.config?["supportedPaymentTypes"] = Array(selectedValues)
+                } else {
+                    self.config?["supportedPaymentTypes"] = []
+                }
+            }
+        }
+        
+        // Supported Countries Section
+        form +++ Section("Supported Countries")
+        <<< MultipleSelectorRow<String>("supportedCountries") { row in
+            row.title = "Countries"
+            row.options = CheckoutSettingsViewController.supportedCountries
+            
+            // Set initial selections based on current config
+            if let currentValues = self.config?["supportedCountries"] as? [String] {
+                row.value = Set(currentValues)
+            }
+            
+            row.onChange { row in
+                if let selectedValues = row.value, !selectedValues.isEmpty {
+                    self.config?["supportedCountries"] = Array(selectedValues)
+                } else {
+                    self.config?["supportedCountries"] = []
+                }
+            }
+        }
+        form +++ Section("Amount")
         <<< TextRow("amount"){ row in
             row.title = "Amount"
             row.placeholder = "Enter amount"
@@ -234,31 +362,20 @@ class CheckoutSettingsViewController: FormViewController {
                 self.config?.updateAllOccurrences(ofKey: "mode", with: row.value ?? "charge")
             }
         }
-        <<< TextRow("transaction.charge.saveCard"){ row in
+        <<< SwitchRow("transaction.charge.saveCard"){ row in
             row.title = "Save Card"
-            row.placeholder = "true/false"
-            row.value = String(describing: ((config?["transaction"] as? [String: Any])?["charge"] as? [String: Any])?["saveCard"] as? Bool ?? true)
+            row.value = ((config?["transaction"] as? [String: Any])?["charge"] as? [String: Any])?["saveCard"] as? Bool ?? true
             row.onChange { row in
-                self.config?.updateAllOccurrences(ofKey: "saveCard", with: (row.value ?? "true") == "true")
+                self.config?.updateAllOccurrences(ofKey: "saveCard", with: row.value ?? true)
             }
         }
-        <<< TextRow("transaction.charge.threeDSecure"){ row in
+        <<< SwitchRow("transaction.charge.threeDSecure"){ row in
             row.title = "3D Secure"
-            row.placeholder = "true/false"
-            row.value = String(describing: ((config?["transaction"] as? [String: Any])?["charge"] as? [String: Any])?["threeDSecure"] as? Bool ?? true)
+            row.value = ((config?["transaction"] as? [String: Any])?["charge"] as? [String: Any])?["threeDSecure"] as? Bool ?? true
             row.onChange { row in
-                self.config?.updateAllOccurrences(ofKey: "threeDSecure", with: (row.value ?? "true") == "true")
+                self.config?.updateAllOccurrences(ofKey: "threeDSecure", with: row.value ?? true)
             }
         }
-        <<< TextRow("transaction.charge.redirect.url"){ row in
-            row.title = "Redirect URL"
-            row.placeholder = "Enter redirect URL"
-            row.value = (((config?["transaction"] as? [String: Any])?["charge"] as? [String: Any])?["redirect"] as? [String: Any])?["url"] as? String ?? "https://demo.staging.tap.company/v2/sdk/checkout"
-            row.onChange { row in
-                self.config?.updateAllOccurrences(ofKey: "url", with: row.value ?? "https://demo.staging.tap.company/v2/sdk/checkout")
-            }
-        }
-        
         // Order section
         form +++ Section("Order")
         <<< TextRow("order.id"){ row in
@@ -269,9 +386,9 @@ class CheckoutSettingsViewController: FormViewController {
                 self.config?.updateAllOccurrences(ofKey: "id", with: row.value ?? "")
             }
         }
-        <<< TextRow("order.currency"){ row in
-            row.title = "Order Currency"
-            row.placeholder = "Enter currency"
+        <<< ActionSheetRow<String>("order.currency"){ row in
+            row.title =  "Order Currency"
+            row.options = CheckoutSettingsViewController.supportedCurrencies
             row.value = (config?["order"] as? [String: Any])?["currency"] as? String ?? "KWD"
             row.onChange { row in
                 self.config?.updateAllOccurrences(ofKey: "currency", with: row.value ?? "KWD")
@@ -488,164 +605,23 @@ extension CheckoutSettingsViewController {
     ]
     
     static let supportedCountries: [String] =   [
-        "AF",
-        "AL",
-        "DZ",
-        "AS",
-        "AD",
-        "AO",
-        "AI",
-        "AQ",
-        "AG",
-        "AR",
-        "AM",
-        "AW",
-        "AU",
-        "AT",
-        "AZ",
-        "BS",
-        "BH",
-        "BD",
-        "BB",
-        "BY",
-        "BE",
-        "BZ",
-        "BJ",
-        "BM",
-        "BT",
-        "BO",
-        "BQ",
-        "BA",
-        "BW",
-        "BV",
-        "BR",
-        "IO",
-        "BN",
-        "BG",
-        "BF",
-        "BI",
-        "CV",
-        "KH",
-        "CM",
-        "KY",
-        "CA",
-        "CF",
-        "TD",
-        "CL",
-        "CN",
-        "CX",
-        "CC",
-        "CO",
-        "KM",
-        "CD",
-        "CG",
-        "CK",
-        "CR",
-        "HR",
-        "CU",
-        "CW",
-        "CY",
-        "CZ",
-        "CI",
-        "DK",
-        "DJ",
-        "DM",
-        "DO",
-        "EC",
-        "EG",
-        "SV",
-        "GQ",
-        "ER",
-        "EE",
-        "SZ",
-        "ET",
-        "FK",
-        "FO",
-        "FJ",
-        "FI",
-        "FR",
-        "GF",
-        "PF",
-        "TF",
-        "GA",
-        "GM",
-        "GE",
-        "DE",
-        "GH",
-        "GI",
-        "GR",
-        "GL",
-        "GD",
-        "GP",
-        "GU",
-        "GT",
-        "GG",
-        "GN",
-        "GW",
-        "GY",
-        "HT",
-        "HM",
-        "VA",
-        "HN",
-        "HK",
-        "HU",
-        "IS",
-        "IN",
-        "ID",
-        "IR",
-        "IQ",
-        "IE",
-        "IM",
-        "IL",
-        "IT",
-        "JM",
-        "JP",
-        "JE",
-        "JO",
-        "KZ",
-        "KE",
-        "KI",
-        "KP",
-        "KR",
-        "KW",
-        "KG",
-        "LA",
-        "LV",
-        "LB",
-        "LS",
-        "LR",
-        "LY",
-        "LT",
-        "LI",
-        "LU",
-        "MO",
-        "MG",
-        "MW",
-        "MY",
-        "MV",
-        "ML",
-        "MT",
-        "MH",
-        "MQ",
-        "MR",
-        "MU",
-        "YT",
-        "MX",
-        "FM",
-        "MD",
-        "MC",
-        "MN",
-        "ME",
-        "MS",
-        "MA",
-        "MZ",
-        "MM",
-        "NA",
-        "NR",
-        "NP",
-        "NL",
-        "NC",
-        "NZ"
+        "BH",  // Bahrain
+        "EG",  // Egypt
+        "KW",  // Kuwait
+        "OM",  // Oman
+        "QA",  // Qatar
+        "SA",  // Saudi Arabia
+        "AE",  // United Arab Emirates
+        "US"   // United States
     ]
     
+    static let supportedPaymentMethodTypes: [String] = [
+        "CARD",
+        "DEVICE_WALLET",
+        "EXPRESS_CHECKOUT_WALLET",
+        "PASS_THRU_WALLET",
+        "STORED_VALUE_WALLET",
+        "CASH_WALLET",
+        "BNPL"
+    ]
 }

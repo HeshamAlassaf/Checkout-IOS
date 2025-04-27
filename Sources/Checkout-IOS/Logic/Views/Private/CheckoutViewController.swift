@@ -54,6 +54,15 @@ SZhWp4Mnd6wjVgXAsQIDAQAB
         return isSandbox ? CheckoutViewController.sandboxKey : CheckoutViewController.productionKey
     }
     
+    internal var languageCode: String {
+        let language =  configurations["language"] as? String ?? "en"
+        if language == "ar" {
+            return "ar"
+        } else {
+            return "en"
+        }
+    }
+    
     // MARK: - Initialization
     init(configurations: [String: Any], results: CheckoutSDKResults) {
         self.configurations = configurations
@@ -190,7 +199,6 @@ extension CheckoutViewController {
     
     
     func handleRedirection(data: String) {
-        print(data)
         // let us make sure we have the data we need to start such a process
         guard let redirectionData: RedirectionData = try? RedirectionData(data),
               let _: String = redirectionData.url,
@@ -205,11 +213,12 @@ extension CheckoutViewController {
         // Set to web view the needed urls
         redirectView.redirectionData = redirectionData
         // Set the selected card locale for correct semantic rendering
-        redirectView.selectedLocale = "en"
+        redirectView.selectedLocale = languageCode
         // Set to web view what should it when the process is canceled by the user
         redirectView.redirectionViewClosed = {
             SwiftEntryKit.dismiss()
-            self.handleError(data: "user canceled")
+            self.webView?.evaluateJavaScript("window.returnBack()")
+//            self.handleError(data: "user canceled")
         }
         // Hide or show the powered by tap based on coming parameter
         redirectView.poweredByTapView.isHidden = !(redirectionData.powered ?? true)
