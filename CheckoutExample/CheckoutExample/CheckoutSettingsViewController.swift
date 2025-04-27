@@ -40,7 +40,7 @@ class CheckoutSettingsViewController: FormViewController {
         }
         <<< ActionSheetRow<String>("themeMode"){ row in
             row.title = "Theme Mode"
-            row.options = ["light", "dark", "light_mono", "dark_colored", "auto"]
+            row.options = ["light", "dark", "light_mono", "dark_colored"]
             row.value = self.config?["themeMode"] as? String ?? "light"
             row.onChange { row in
                 self.config?["themeMode"] = row.value ?? "light"
@@ -77,7 +77,26 @@ class CheckoutSettingsViewController: FormViewController {
         
         <<< MultipleSelectorRow<String>("specificPaymentMethods") { row in
             row.title = "Select Payment Methods"
-            row.options = CheckoutSettingsViewController.supportedPaymentMethodTypes
+            row.options = [
+                "AMERICAN_EXPRESS",
+                "APPLE_PAY",
+                "BENEFIT",
+                "BENEFITPAY",
+                "CAREEMPAY",
+                "FAWRY",
+                "GOOGLE_PAY",
+                "KNET",
+                "MADA",
+                "MASTERCARD",
+                "MEEZA",
+                "OMANNET",
+                "PAYPAL",
+                "POST_PAY",
+                "NAPS",
+                "STC_PAY",
+                "TABBY",
+                "VISA"
+            ]
             // Set initial selections based on current config
             let currentValue = self.config?["supportedPaymentMethods"] as? String
             if currentValue != "ALL" {
@@ -185,11 +204,7 @@ class CheckoutSettingsViewController: FormViewController {
         form +++ Section("Supported Regions")
         <<< MultipleSelectorRow<String>("supportedRegions") { row in
             row.title = "Regions"
-            row.options = [
-                "LOCAL",
-                "REGIONAL",
-                "GLOBAL"
-            ]
+            row.options = CheckoutSettingsViewController.regionOptions
             
             // Set initial selections based on current config
             if let currentValues = self.config?["supportedRegions"] as? [String] {
@@ -209,15 +224,7 @@ class CheckoutSettingsViewController: FormViewController {
         form +++ Section("Supported Schemes")
         <<< MultipleSelectorRow<String>("supportedSchemes") { row in
             row.title = "Card Schemes"
-            row.options = [
-                "VISA",
-                "BENEFIT",
-                "AMEX",
-                "MASTERCARD",
-                "MADA",
-                "MEEZA",
-                "OMANNET"
-            ]
+            row.options = CheckoutSettingsViewController.schemeOptions
             
             // Set initial selections based on current config
             if let currentValues = self.config?["supportedSchemes"] as? [String] {
@@ -237,15 +244,7 @@ class CheckoutSettingsViewController: FormViewController {
         form +++ Section("Supported Payment Types")
         <<< MultipleSelectorRow<String>("supportedPaymentTypes") { row in
             row.title = "Payment Types"
-            row.options = [
-                "CARD",
-                "DEVICE_WALLET",
-                "EXPRESS_CHECKOUT_WALLET",
-                "PASS_THRU_WALLET",
-                "STORED_VALUE_WALLET",
-                "CASH_WALLET",
-                "BNPL"
-            ]
+            row.options = CheckoutSettingsViewController.paymentMethodTypes
             
             // Set initial selections based on current config
             if let currentValues = self.config?["supportedPaymentTypes"] as? [String] {
@@ -572,6 +571,7 @@ extension Dictionary where Key == String, Value == Any {
     }
 }
 extension CheckoutSettingsViewController {
+    
     static let supportedPaymentMethods: [String] = [
         "VISA",
         "MASTERCARD",
@@ -615,7 +615,25 @@ extension CheckoutSettingsViewController {
         "US"   // United States
     ]
     
-    static let supportedPaymentMethodTypes: [String] = [
+    static let languageOptions: [String] = ["en", "ar"]
+    
+    static let themeModeOptions: [String] = [
+        "light",
+        "dark",
+        "light_mono",
+        "dark_colored",
+        "auto"
+    ]
+    
+    static let paymentTypeOptions: [String] = ["ALL", "WEB", "CARD", "DEVICE"]
+    
+    static let transactionModeOptions: [String] = ["charge", "authorize"]
+    
+    static let cardFundingSourceOptions: [String] = ["all", "credit", "debit"]
+    
+    static let saveCardOptions: [String] = ["none", "merchant"]
+    
+    static let paymentMethodTypes: [String] = [
         "CARD",
         "DEVICE_WALLET",
         "EXPRESS_CHECKOUT_WALLET",
@@ -623,5 +641,43 @@ extension CheckoutSettingsViewController {
         "STORED_VALUE_WALLET",
         "CASH_WALLET",
         "BNPL"
+    ]
+    
+    static let paymentMethodOptions: [String] = [
+        "VISA",
+        "MASTERCARD",
+        "MEEZA",
+        "MADA",
+        "KNET",
+        "GOOGLE_PAY",
+        "FAWRY",
+        "CAREEMPAY",
+        "BENEFITPAY",
+        "BENEFIT",
+        "OMANNET",
+        "PAYPAL",
+        "POST_PAY",
+        "NAPS",
+        "STC_PAY",
+        "TABBY"
+    ]
+    
+    static let regionOptions: [String] = [
+        "LOCAL",
+        "REGIONAL",
+        "GLOBAL"
+    ]
+    
+    static let schemeOptions: [String] = [
+        "VISA",
+        "MASTERCARD",
+        "AMEX",
+        "MADA",
+        "BENEFIT",
+        "KNET",
+        "JCB",
+        "DISCOVER",
+        "DINERS_CLUB",
+        "UNION_PAY"
     ]
 }
