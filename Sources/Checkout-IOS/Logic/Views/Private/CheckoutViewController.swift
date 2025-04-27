@@ -218,7 +218,6 @@ extension CheckoutViewController {
         redirectView.redirectionViewClosed = {
             SwiftEntryKit.dismiss()
             self.webView?.evaluateJavaScript("window.returnBack()")
-//            self.handleError(data: "user canceled")
         }
         // Hide or show the powered by tap based on coming parameter
         redirectView.poweredByTapView.isHidden = !(redirectionData.powered ?? true)

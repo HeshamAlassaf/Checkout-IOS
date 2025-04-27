@@ -30,6 +30,31 @@ class ViewController: UIViewController, CheckoutSettingsViewControllerDelegate {
         return button
     }()
     
+    private lazy var callbacksLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 0 // Allow multiple lines
+        label.textAlignment = .left
+        label.font = UIFont.systemFont(ofSize: 14)
+        label.textColor = .darkGray
+        label.backgroundColor = UIColor.lightGray.withAlphaComponent(0.2)
+        label.layer.cornerRadius = 8
+        label.layer.masksToBounds = true
+        label.text = "Callbacks will appear here..."
+        // Add padding
+        label.layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        return label
+    }()
+    
+    private lazy var callbacksScrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.showsVerticalScrollIndicator = true
+        scrollView.backgroundColor = .clear
+        return scrollView
+    }()
+    
+    private var callbackMessages: [String] = []
+    private let maxCallbacksToShow = 10
+    
     var configurations:[String:Any] = [
         "hashString": "",
         "language": "en",
@@ -120,9 +145,12 @@ class ViewController: UIViewController, CheckoutSettingsViewControllerDelegate {
     private func setupUI() {
         view.addSubview(checkoutButton)
         view.addSubview(configButton)
+        view.addSubview(callbacksScrollView)
+        callbacksScrollView.addSubview(callbacksLabel)
 
         checkoutButton.snp.makeConstraints { make in
-            make.center.equalToSuperview()
+            make.centerX.equalToSuperview()
+            make.top.equalTo(view.safeAreaLayoutGuide).offset(20)
             make.width.equalTo(200)
             make.height.equalTo(50)
         }
@@ -133,6 +161,44 @@ class ViewController: UIViewController, CheckoutSettingsViewControllerDelegate {
             make.width.equalTo(200)
             make.height.equalTo(50)
         }
+        
+        callbacksScrollView.snp.makeConstraints { make in
+            make.top.equalTo(configButton.snp.bottom).offset(20)
+            make.left.equalToSuperview().offset(20)
+            make.right.equalToSuperview().offset(-20)
+            make.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
+        }
+        
+        callbacksLabel.snp.makeConstraints { make in
+            make.edges.equalToSuperview().inset(UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8))
+            make.width.equalTo(callbacksScrollView.snp.width).offset(-16)
+        }
+    }
+    
+    private func addCallbackMessage(_ message: String) {
+        // Add timestamp to the message
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm:ss"
+        let timestamp = dateFormatter.string(from: Date())
+        let formattedMessage = "[\(timestamp)] \(message)"
+        
+        // Add the new message to the array
+        callbackMessages.insert(formattedMessage, at: 0)
+        
+        // Limit the number of messages to show
+        if callbackMessages.count > maxCallbacksToShow {
+            callbackMessages = Array(callbackMessages.prefix(maxCallbacksToShow))
+        }
+        
+        // Update the label text
+        callbacksLabel.text = callbackMessages.joined(separator: "\n\n")
+        
+        // Ensure the scroll view updates its content size
+        callbacksLabel.sizeToFit()
+        callbacksScrollView.contentSize = callbacksLabel.bounds.size
+        
+        // Scroll to the top to show the latest message
+        callbacksScrollView.setContentOffset(CGPoint.zero, animated: true)
     }
     
     @objc private func editParams() {
@@ -155,6 +221,22 @@ class ViewController: UIViewController, CheckoutSettingsViewControllerDelegate {
 
 // MARK: - CheckoutSDKDelegate
 extension ViewController: CheckoutSDKDelegate {
+    func onClose() {
+        addCallbackMessage("onClose: Checkout was closed")
+    }
+    
+    func onReady() {
+        addCallbackMessage("onReady: Checkout is ready")
+    }
+    
+    func onSuccess(data: String) {
+        addCallbackMessage("onSuccess: \(data)")
+    }
+    
+    func onError(data: String) {
+        addCallbackMessage("onError: \(data)")
+    }
+    
     var controller: UIViewController {
         return self
     }

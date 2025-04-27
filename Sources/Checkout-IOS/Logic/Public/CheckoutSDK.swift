@@ -10,12 +10,15 @@ import UIKit
 
 public class CheckoutSDK {
     
+    weak var delegate: CheckoutSDKDelegate?
+    
     public init() {
         
     }
     
     public func start(configurations: [String : Any], delegate: CheckoutSDKDelegate) {
         let checkoutViewController = CheckoutViewController(configurations: configurations, results: self)
+        self.delegate = delegate
         delegate.controller.present(checkoutViewController, animated: true)
     }
 }
@@ -23,23 +26,27 @@ public class CheckoutSDK {
 extension CheckoutSDK: CheckoutSDKResults {
     
     func onClose() {
-        print("onClose")
+        delegate?.onClose()
     }
     
     func onReady() {
-        print("onSuccess")
+        delegate?.onReady()
     }
     
     func onSuccess(data: String) {
-        print("onSuccess \(data)")
+        delegate?.onSuccess(data: data)
     }
     
     func onError(data: String) {
-        print("onError \(data)")
+        delegate?.onError(data: data)
     }
 }
 
 
-public protocol CheckoutSDKDelegate {
+public protocol CheckoutSDKDelegate: AnyObject {  
     var controller: UIViewController { get }
+    func onClose()
+    func onReady()
+    func onSuccess(data: String)
+    func onError(data: String)
 }
