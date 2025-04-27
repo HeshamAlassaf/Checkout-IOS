@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		D65FC0AA2DB93AA9002B526A /* Checkout-IOS in Frameworks */ = {isa = PBXBuildFile; productRef = D65FC0A92DB93AA9002B526A /* Checkout-IOS */; };
+		D66922652DBE7B9B00F7620C /* Eureka in Frameworks */ = {isa = PBXBuildFile; productRef = D66922642DBE7B9B00F7620C /* Eureka */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +42,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D65FC0AA2DB93AA9002B526A /* Checkout-IOS in Frameworks */,
+				D66922652DBE7B9B00F7620C /* Eureka in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -84,6 +86,7 @@
 			name = CheckoutExample;
 			packageProductDependencies = (
 				D65FC0A92DB93AA9002B526A /* Checkout-IOS */,
+				D66922642DBE7B9B00F7620C /* Eureka */,
 			);
 			productName = CheckoutExample;
 			productReference = D65FC0702DB93942002B526A /* CheckoutExample.app */;
@@ -115,6 +118,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				D65FC0A82DB93AA9002B526A /* XCLocalSwiftPackageReference "../../Checkout-IOS" */,
+				D66922632DBE7B9B00F7620C /* XCRemoteSwiftPackageReference "Eureka" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D65FC0712DB93942002B526A /* Products */;
@@ -350,10 +354,26 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		D66922632DBE7B9B00F7620C /* XCRemoteSwiftPackageReference "Eureka" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/xmartlabs/Eureka";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		D65FC0A92DB93AA9002B526A /* Checkout-IOS */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = "Checkout-IOS";
+		};
+		D66922642DBE7B9B00F7620C /* Eureka */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D66922632DBE7B9B00F7620C /* XCRemoteSwiftPackageReference "Eureka" */;
+			productName = Eureka;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
