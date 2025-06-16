@@ -101,20 +101,21 @@ extension CheckoutViewController {
         webView?.isHidden = false
         // Let us add it to the view
         self.view.backgroundColor = UIColor.clear
+        if #available(iOS 11.0, *) {
+            webView?.scrollView.contentInsetAdjustmentBehavior = .never
+        } else {
+            self.automaticallyAdjustsScrollViewInsets = false
+        }
         self.view.addSubview(webView!)
+        
     }
     
     func setupConstraints() {
-        // Defensive coding
         guard let webView = self.webView else {
             return
         }
-        
         webView.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
-            make.left.equalTo(view.safeAreaLayoutGuide.snp.left)
-            make.right.equalTo(view.safeAreaLayoutGuide.snp.right)
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
+            make.edges.equalToSuperview()
         }
     }
 }

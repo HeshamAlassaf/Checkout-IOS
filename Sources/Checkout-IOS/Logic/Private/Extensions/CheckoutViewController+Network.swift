@@ -90,7 +90,8 @@ extension CheckoutViewController {
                         do {
                             if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
                                 if let redirectUrlString = jsonResponse["redirect_url"] as? String {
-                                    CheckoutViewController.tabCheckoutUrl = self.transformURlFromConfig(redirectUrlString)
+                                    CheckoutViewController.tabCheckoutUrl = redirectUrlString + "&platform=mobile"
+//                                    CheckoutViewController.tabCheckoutUrl = redirectUrlString self.transformURlFromConfig(redirectUrlString)
                                     self.postLoadingFromCDN()
                                 }
                             }
