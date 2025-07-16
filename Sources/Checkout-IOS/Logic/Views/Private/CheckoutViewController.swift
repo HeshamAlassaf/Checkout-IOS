@@ -23,8 +23,8 @@ class CheckoutViewController: UIViewController {
     
     // MARK: - Static Properties
     internal static let cdnUrl: String = "https://tap-sdks.b-cdn.net/mobile/checkout/base_url.json"
-    internal static var tabCheckoutConfigUrl: String = "https://mw-sdk.dev.tap.company/v2/"
-    internal static var tabCheckoutUrl: String = "https://mw-sdk.dev.tap.company/v2/"
+    internal static var tabCheckoutConfigUrl: String = "https://mw-sdk.tap.company/v2/"
+    internal static var tabCheckoutUrl: String = "https://mw-sdk.tap.company/v2/"
     internal static var sandboxKey: String = """
 -----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC8AX++RtxPZFtns4XzXFlDIxPB
@@ -41,7 +41,6 @@ BLt+fYLQBhLfjRpk8S6hlIzc1Kdjg65uqzMwcTd0p7I4KLwHk1I0oXzuEu53fU1L
 SZhWp4Mnd6wjVgXAsQIDAQAB
 -----END PUBLIC KEY-----
 """
-    internal var tabCheckoutConfig: String = "https://checkout.dev.tap.company/"
     
     // MARK: - Computed Properties
     private var isSandbox: Bool {
