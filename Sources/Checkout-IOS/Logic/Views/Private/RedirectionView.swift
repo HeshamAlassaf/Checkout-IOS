@@ -177,27 +177,24 @@ extension RedirectionView {
         
         var attributes = EKAttributes.bottomFloat
         attributes.entryBackground = .clear
-        attributes.screenBackground = .color(color: .init(light: .init(white: 0, alpha: 0.6), dark: .init(red: 0.108, green: 0.108, blue: 0.108, alpha: 0.75)))//.visualEffect(style: .standard)
+        attributes.screenBackground = .color(color: .init(light: .init(white: 0, alpha: 0.6), dark: .init(red: 0.108, green: 0.108, blue: 0.108, alpha: 0.75)))
         attributes.displayDuration = .infinity
-        //attributes.popBehavior = .animated(animation: .init(fade: .init(from: 0, to: 1, duration: 2.0, delay: 2.0)))
         attributes.entranceAnimation = .init(translate: .init(duration: 0.35))
         attributes.shadow = .active(with: .init(color: .black, opacity: 0.25, radius: 5, offset: .zero))
         attributes.name = "TapOtpCodeWebEntry"
-        // Give the entry the width of the screen minus 20pts from each side, the height is decided by the content's contraint's
-        attributes.positionConstraints.size = .init(width: .fill, height: .ratio(value: 0.90))//.constant(value: 500))
-        attributes.entryInteraction = .absorbTouches
-        attributes.screenInteraction = .forward
+        attributes.positionConstraints.size = .init(width: .fill, height: .ratio(value: 0.90))
+        
+        // Fix for text selection popup scrolling
+        attributes.entryInteraction = .forward  // Changed from .absorbTouches
+        attributes.screenInteraction = .dismiss // Changed from .forward
+        
         attributes.roundCorners = .all(radius: 8)
         attributes.positionConstraints.verticalOffset = -50
-        //attributes.positionConstraints.hasVerticalOffset = false
         attributes.positionConstraints.safeArea = .overridden
-        attributes.scroll = .enabled(swipeable: false, pullbackAnimation: .jolt)
-        //attributes.entranceAnimation = .init(
-          //  fade: .init(from: 0.5, to: 1, duration: 0.5))
         
-        //attributes.exitAnimation = .init(
-          //  fade: .init(from: 1, to: 0.5, duration: 0.5))
-
+        // Enable proper scrolling for WebView content
+        attributes.scroll = .enabled(swipeable: true, pullbackAnimation: .easeOut) // Changed swipeable to true
+        
         return attributes
     }
     
