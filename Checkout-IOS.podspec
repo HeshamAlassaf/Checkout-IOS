@@ -9,7 +9,12 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '13.0'
   s.swift_version = '5.0'
   s.source_files = 'Sources/Checkout-IOS/Logic/**/*.swift'
-  s.resources = "Sources/Checkout-IOS/Resources/**/*.{json,xib,pdf,png,gif,storyboard,xcassets,xcdatamodeld,lproj}"
+  s.resource_bundles = {
+    'CheckoutIOSResources' => [
+      'Sources/Checkout-IOS/Resources/**/*.{xcassets,png,pdf,gif}'
+    ]
+  }
+  s.resources = "Sources/Checkout-IOS/Resources/**/*.{json,xib,storyboard,xcdatamodeld,lproj}"
   s.dependency'SwiftEntryKit'
   s.dependency'SwiftyRSA'
   s.dependency'SnapKit'
